@@ -31,6 +31,26 @@ services:
       # random value (e.g. `openssl rand -hex 32`) and keep it private.
       - key: NANOBOT_WEB_TOKEN
         sync: false
+      # Channels whose Python dependencies are baked into the image. Render
+      # passes service env vars to `docker build` as build args, so this feeds
+      # the Dockerfile's NANOBOT_CHANNELS ARG. Baking dependencies at build time
+      # keeps deploys reproducible and means channels can be enabled from the
+      # remote WebUI without ever turning on
+      # tools.webuiAllowRemotePackageInstall (that gate only triggers when a
+      # channel's dependencies are missing at runtime). Edit the list and
+      # redeploy to change which channels the image supports.
+      - key: NANOBOT_CHANNELS
+        value: whatsapp,telegram
+      # Telegram bot token from https://t.me/BotFather, wired into the config
+      # via the ${TELEGRAM_BOT_TOKEN} placeholder in render-config.json. The
+      # variable must exist (the gateway refuses to start on a dangling ${VAR}
+      # reference), but its value may be empty: the Telegram channel then logs
+      # "bot token not configured" and stays down while everything else runs.
+      # Set or rotate it later under Environment in the Render Dashboard, then
+      # restart. Not referenced by the Dockerfile, so it is never baked into
+      # the image.
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
       # Port Render routes public traffic to; matches channels.websocket.port
       # in render-config.json.
       - key: PORT
