@@ -21,6 +21,13 @@
       "port": 8765,
       "tokenIssueSecret": "${NANOBOT_WEB_TOKEN}",
       "websocketRequiresToken": true
+    },
+    "whatsapp": {
+      "enabled": true
+    },
+    "telegram": {
+      "enabled": true,
+      "token": "${TELEGRAM_BOT_TOKEN}"
     }
   },
   "tools": {

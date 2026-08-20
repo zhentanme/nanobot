@@ -43,10 +43,20 @@ Run nanobot online without managing a server. The blueprint deploys the gateway 
 
 1. Click **Deploy to Render**, sign in, and review the Blueprint. It creates one Starter web service and a 1 GB persistent disk.
 2. Enter your `ANTHROPIC_API_KEY`. Set `NANOBOT_WEB_TOKEN` to a new random value and save it in your password manager; this is the password for the public WebUI.
-3. Create the Blueprint and wait for the service status to become **Live**. The first build can take several minutes.
-4. Open the generated `onrender.com` URL. The **Authentication required** page means the gateway is running: enter the same `NANOBOT_WEB_TOKEN` value to open the WebUI.
+3. Enter your Telegram bot token from [@BotFather](https://t.me/BotFather) as `TELEGRAM_BOT_TOKEN`, or leave it empty to skip Telegram for now (the channel stays down and logs `bot token not configured` until you add the token under **Environment** and restart).
+4. Create the Blueprint and wait for the service status to become **Live**. The first build can take several minutes.
+5. Open the generated `onrender.com` URL. The **Authentication required** page means the gateway is running: enter the same `NANOBOT_WEB_TOKEN` value to open the WebUI.
 
 The model API key is used by nanobot to call Anthropic. The Web token only protects access to this deployment; do not share it in issues, screenshots, or chat.
+
+### Chat Channels
+
+The Blueprint bakes the WhatsApp and Telegram channel dependencies into the image at build time: Render passes the `NANOBOT_CHANNELS` environment variable to `docker build` as a build argument, which the [Dockerfile](../Dockerfile) uses to preinstall each listed channel's manifest dependencies. Both channels are enabled in the initial config:
+
+- **Telegram** connects on first boot using the `TELEGRAM_BOT_TOKEN` environment variable.
+- **WhatsApp** needs a one-time pairing: open **Settings → Channels → WhatsApp** in the WebUI and scan the QR code with **Linked Devices**. The pairing state lives on the persistent disk, so it survives restarts and deploys.
+
+To support more channels, edit `NANOBOT_CHANNELS` (comma-separated channel names) in the service's environment and redeploy so the image is rebuilt with their dependencies; then enable them in the WebUI. Because dependencies are baked at build time, channels can be enabled from the remote WebUI without setting `tools.webuiAllowRemotePackageInstall` — that escape hatch only applies when a channel's dependencies are missing from the running image, and installs done that way would not survive the next deploy anyway.
 
 ### Updates and Data
 
