@@ -43,7 +43,10 @@ RUN NANOBOT_SKIP_WEBUI_BUILD=1 uv pip install --python "$VIRTUAL_ENV/bin/python"
 
 # Preinstall selected channel dependencies from their manifests. A comma-separated
 # list keeps the image configurable while preserving WhatsApp in the default image.
-ARG NANOBOT_CHANNELS=whatsapp
+# Keep this list in the ARG default rather than a Render env var: Render injects
+# service env vars at runtime too, where nanobot's Config would read
+# NANOBOT_CHANNELS as a (JSON) settings override and fail to load.
+ARG NANOBOT_CHANNELS=whatsapp,telegram
 RUN for channel in $(printf '%s' "$NANOBOT_CHANNELS" | tr ',' ' '); do \
         python -m scripts.install_channel_dependencies "$channel"; \
     done

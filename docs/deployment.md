@@ -51,12 +51,12 @@ The model API key is used by nanobot to call Anthropic. The Web token only prote
 
 ### Chat Channels
 
-The Blueprint bakes the WhatsApp and Telegram channel dependencies into the image at build time: Render passes the `NANOBOT_CHANNELS` environment variable to `docker build` as a build argument, which the [Dockerfile](../Dockerfile) uses to preinstall each listed channel's manifest dependencies. Both channels are enabled in the initial config:
+The [Dockerfile](../Dockerfile) bakes the WhatsApp and Telegram channel dependencies into the image at build time via its `NANOBOT_CHANNELS` build argument (default `whatsapp,telegram`), which preinstalls each listed channel's manifest dependencies. Both channels are enabled in the initial config:
 
 - **Telegram** connects on first boot using the `TELEGRAM_BOT_TOKEN` environment variable. The template ships with `allowFrom: ["*"]`, so **anyone who finds the bot can talk to it** (and consume your Anthropic quota). To restrict access, replace `"*"` with specific numeric user IDs or usernames in **Settings → Channels → Telegram**, or remove the field entirely to require per-sender pairing approval.
 - **WhatsApp** needs a one-time pairing: open **Settings → Channels → WhatsApp** in the WebUI and scan the QR code with **Linked Devices**. The pairing state lives on the persistent disk, so it survives restarts and deploys.
 
-To support more channels, edit `NANOBOT_CHANNELS` (comma-separated channel names) in the service's environment and redeploy so the image is rebuilt with their dependencies; then enable them in the WebUI. Because dependencies are baked at build time, channels can be enabled from the remote WebUI without setting `tools.webuiAllowRemotePackageInstall` — that escape hatch only applies when a channel's dependencies are missing from the running image, and installs done that way would not survive the next deploy anyway.
+To support more channels, edit the `NANOBOT_CHANNELS` default (comma-separated channel names) in the [Dockerfile](../Dockerfile) and redeploy so the image is rebuilt with their dependencies; then enable them in the WebUI. Do **not** set `NANOBOT_CHANNELS` as a Render environment variable: Render injects service env vars at runtime too, where nanobot reads `NANOBOT_`-prefixed variables as (JSON) settings overrides, and a comma-separated list breaks every config load. Because dependencies are baked at build time, channels can be enabled from the remote WebUI without setting `tools.webuiAllowRemotePackageInstall` — that escape hatch only applies when a channel's dependencies are missing from the running image, and installs done that way would not survive the next deploy anyway.
 
 ### Updates and Data
 
